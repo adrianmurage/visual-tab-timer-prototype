@@ -1,15 +1,36 @@
+/**
+ * Pomodoro Timer Application
+ * 
+ * This application implements a Pomodoro timer with visual feedback in both the UI
+ * and browser tab (favicon). The timer runs for 25 minutes and changes appearance
+ * based on whether it's running (red) or paused (blue).
+ * 
+ * Features:
+ * - Countdown timer with start, pause, and reset functionality
+ * - Dynamic browser tab title showing current time and state
+ * - Interactive favicon that displays timer progress in the browser tab
+ * - Visual preview of the favicon state in the UI
+ */
+
 import { useState, useEffect } from 'react';
-import './App.css'; // Import the CSS file
+import './App.css';
 
 const App = () => {
-  const [isActive, setIsActive] = useState(false);
+  // State management
+  const [isActive, setIsActive] = useState(false); // Controls if timer is running
   const [timeRemaining, setTimeRemaining] = useState(25 * 60); // 25 minutes in seconds
-  const totalTime = 25 * 60; // 25 minutes in seconds
+  const totalTime = 25 * 60; // 25 minutes in seconds (constant)
   
-  // Calculate progress (0 to 1)
+  // Calculate progress (0 to 1) - decreases as time passes
   const progress = 1 - (timeRemaining / totalTime);
   
-  // Update document title with timer countdown
+  /**
+   * Effect: Update document title based on timer state
+   * 
+   * This changes the browser tab title to show the current time and whether
+   * the timer is running or paused, providing at-a-glance status even when
+   * the tab is not in focus.
+   */
   useEffect(() => {
     // Default title when no active timer
     if (!isActive && timeRemaining === 25 * 60) {
@@ -27,7 +48,19 @@ const App = () => {
     document.title = `${formatTime(timeRemaining)} - Pomodoro`;
   }, [isActive, timeRemaining]);
 
-  // Function to create a data URL for a donut timer of a given color and progress
+  /**
+   * Creates a data URL for the donut-shaped timer favicon
+   * 
+   * This function generates the visual representation of the timer as a donut shape:
+   * - Uses canvas to draw a donut with a progress arc
+   * - Changes color based on timer state (red for active, blue for paused)
+   * - Adjusts to different sizes for browser compatibility
+   * 
+   * @param {boolean} isRunning - Whether the timer is currently running
+   * @param {number} progress - Current progress value (0 to 1)
+   * @param {number} size - Size of the favicon in pixels (default: 32)
+   * @returns {string} Data URL of the generated favicon image
+   */
   const createDonutTimerDataURL = (isRunning, progress, size = 32) => {
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -37,11 +70,11 @@ const App = () => {
     // Clear canvas with transparent background
     ctx.clearRect(0, 0, size, size);
     
-    // Calculate dimensions
+    // Calculate dimensions using relative proportions for different sizes
     const centerX = size / 2;
     const centerY = size / 2;
-    const radius = Math.floor(size * 0.34); // Slightly smaller than the canvas
-    const lineWidth = Math.floor(size * 0.19); // Thicker line for better visibility
+    const radius = Math.floor(size * 0.34); // Smaller than canvas for better visibility
+    const lineWidth = Math.floor(size * 0.19); // Thick line for better visibility at small sizes
     
     // Set line width for the donut shape
     ctx.lineWidth = lineWidth;
@@ -53,11 +86,12 @@ const App = () => {
     ctx.strokeStyle = isRunning ? 'rgba(255, 0, 0, 0.3)' : 'rgba(0, 0, 255, 0.3)';
     ctx.stroke();
     
-    // Draw progress arc
+    // Draw progress arc - only if there is progress to show
     if (progress > 0) {
       ctx.beginPath();
+      // Start from top (-Math.PI/2) and draw clockwise
       ctx.arc(centerX, centerY, radius, -Math.PI/2, (-Math.PI/2) + (progress * 2 * Math.PI));
-      // Use dark red when active, dark blue when paused
+      // Use dark red when active, dark blue when paused for better contrast
       ctx.strokeStyle = isRunning ? '#b00000' : '#0000b0';
       ctx.stroke();
     }
@@ -65,29 +99,38 @@ const App = () => {
     return canvas.toDataURL('image/png');
   };
   
-  // Update favicon based on timer state
+  /**
+   * Effect: Update favicon based on timer state
+   * 
+   * This effect ensures the browser tab favicon reflects the current timer state:
+   * - Creates different sized favicons for browser compatibility
+   * - Handles different browser quirks with multiple update attempts
+   * - Changes color based on timer state (red=running, blue=paused)
+   * - Shows progress as an arc in the donut
+   */
   useEffect(() => {
-    // Force favicon update with better browser compatibility
+    // Function to update favicon with robust browser compatibility
     const updateFaviconInBrowser = () => {
       try {
-        // Generate favicons of multiple sizes
+        // Generate favicons of multiple sizes for better browser compatibility
+        // Different browsers prefer different sizes (16px vs 32px)
         const favicon32 = createDonutTimerDataURL(isActive, progress, 32);
         const favicon16 = createDonutTimerDataURL(isActive, progress, 16);
         
-        // Remove all existing favicons
+        // Remove all existing favicons to prevent conflicts
         const existingLinks = document.querySelectorAll("link[rel*='icon']");
         existingLinks.forEach(link => {
           document.head.removeChild(link);
         });
         
-        // Add the main icon
+        // Add the main icon (32x32)
         const mainIcon = document.createElement('link');
         mainIcon.rel = 'icon';
         mainIcon.href = favicon32;
         mainIcon.sizes = '32x32';
         document.head.appendChild(mainIcon);
         
-        // Add a smaller icon for browsers that prefer it
+        // Add a smaller icon (16x16) for browsers that prefer it
         const smallIcon = document.createElement('link');
         smallIcon.rel = 'icon';
         smallIcon.href = favicon16;
@@ -106,42 +149,47 @@ const App = () => {
       }
     };
     
-    // Handle default state (completely reset timer)
-    if (!isActive && timeRemaining === 25 * 60) {
-      // For default state, still use our custom donut but with 0 progress
-      updateFaviconInBrowser();
-      return;
-    }
-    
-    // Execute update
+    // Execute update immediately
     updateFaviconInBrowser();
     
     // Also try again after delays for better browser compatibility
+    // Some browsers need multiple attempts or delayed updates to show favicon changes
     const timeoutId1 = setTimeout(updateFaviconInBrowser, 100);
     const timeoutId2 = setTimeout(updateFaviconInBrowser, 500);
     
-    // Clean up
+    // Clean up timeouts when component unmounts or dependencies change
     return () => {
       clearTimeout(timeoutId1);
       clearTimeout(timeoutId2);
     };
   }, [isActive, progress, timeRemaining]);
   
-  // Timer functionality
+  /**
+   * Effect: Handle timer countdown logic
+   * 
+   * This effect manages the actual timer countdown using setInterval:
+   * - Decreases timeRemaining every second when active
+   * - Automatically stops the timer when it reaches zero
+   * - Cleans up interval when component unmounts or dependencies change
+   */
   useEffect(() => {
     let interval = null;
     
     if (isActive && timeRemaining > 0) {
+      // Set up interval to decrement time every second
       interval = setInterval(() => {
         setTimeRemaining(prev => prev - 1);
       }, 1000);
     } else if (timeRemaining === 0) {
+      // Auto-stop timer when it reaches zero
       setIsActive(false);
     }
     
+    // Clean up interval on unmount or dependency change
     return () => clearInterval(interval);
   }, [isActive, timeRemaining]);
   
+  // Timer control functions
   const startTimer = () => {
     setIsActive(true);
   };
@@ -155,11 +203,35 @@ const App = () => {
     setTimeRemaining(25 * 60);
   };
   
-  // Format time as mm:ss
+  /**
+   * Formats seconds into mm:ss display format
+   * 
+   * @param {number} seconds - Time in seconds
+   * @returns {string} Formatted time string (mm:ss)
+   */
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  /**
+   * Calculate clipPath for the circular progress indicator
+   * 
+   * This creates a polygon-based clipPath that represents a pie chart
+   * showing the current progress. The complex calculation ensures the
+   * arc follows the circular shape properly at all progress levels.
+   */
+  const getProgressClipPath = () => {
+    return `polygon(
+      50% 50%, 
+      50% 0%, 
+      ${progress > 0.125 ? '100% 0%' : `${50 + 50 * Math.tan(progress * 2 * Math.PI)}% 0%`},
+      ${progress > 0.375 ? '100% 100%' : progress > 0.125 ? `100% ${50 - 50 * Math.tan((progress - 0.25) * 2 * Math.PI)}%` : '50% 50%'},
+      ${progress > 0.625 ? '0% 100%' : progress > 0.375 ? `${50 - 50 * Math.tan((progress - 0.5) * 2 * Math.PI)}% 100%` : '50% 50%'},
+      ${progress > 0.875 ? '0% 0%' : progress > 0.625 ? `0% ${50 + 50 * Math.tan((progress - 0.75) * 2 * Math.PI)}%` : '50% 50%'},
+      ${progress > 0.875 ? `${50 - 50 * Math.tan((progress - 1) * 2 * Math.PI)}% 0%` : '50% 50%'}
+    )`;
   };
   
   return (
@@ -196,51 +268,17 @@ const App = () => {
           </button>
         </div>
         
+        {/* Favicon preview - shows what appears in the browser tab */}
         <div className="favicon-preview">
-          <div 
-            className="favicon-icon"
-            style={{
-              width: '48px',
-              height: '48px',
-              margin: '20px auto 0',
-              position: 'relative',
-              background: 'transparent',
-              border: '9px solid',
-              borderRadius: '50%',
-              borderColor: isActive ? 
-                'rgba(176, 0, 0, 0.8)' : 
-                'rgba(0, 0, 176, 0.8)',
-              boxSizing: 'border-box'
-            }}
-          >
+          <div className={`favicon-icon ${isActive ? 'active' : 'paused'}`}>
             <div 
-              className="progress-overlay"
+              className={`progress-overlay ${isActive ? 'active' : 'paused'}`}
               style={{
-                position: 'absolute',
-                top: '-9px',
-                left: '-9px',
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                clipPath: `polygon(
-                  50% 50%, 
-                  50% 0%, 
-                  ${progress > 0.125 ? '100% 0%' : `${50 + 50 * Math.tan(progress * 2 * Math.PI)}% 0%`},
-                  ${progress > 0.375 ? '100% 100%' : progress > 0.125 ? `100% ${50 - 50 * Math.tan((progress - 0.25) * 2 * Math.PI)}%` : '50% 50%'},
-                  ${progress > 0.625 ? '0% 100%' : progress > 0.375 ? `${50 - 50 * Math.tan((progress - 0.5) * 2 * Math.PI)}% 100%` : '50% 50%'},
-                  ${progress > 0.875 ? '0% 0%' : progress > 0.625 ? `0% ${50 + 50 * Math.tan((progress - 0.75) * 2 * Math.PI)}%` : '50% 50%'},
-                  ${progress > 0.875 ? `${50 - 50 * Math.tan((progress - 1) * 2 * Math.PI)}% 0%` : '50% 50%'}
-                )`,
-                background: 'transparent',
-                border: '9px solid',
-                borderColor: isActive ? 
-                  'rgba(255, 0, 0, 0.8)' : 
-                  'rgba(0, 0, 255, 0.8)',
-                boxSizing: 'border-box'
+                clipPath: getProgressClipPath()
               }}
             />
           </div>
-          <p style={{ fontSize: '12px', marginTop: '8px', color: '#666' }}>
+          <p className="favicon-label">
             Current favicon: {isActive ? 'Running (red)' : 'Paused (blue)'}
           </p>
         </div>

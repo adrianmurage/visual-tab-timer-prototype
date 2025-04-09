@@ -1,4 +1,10 @@
-/* Base styles */
+/* 
+ * Pomodoro Timer CSS
+ * This file contains styles for the Pomodoro Timer application,
+ * including the timer display, controls, and favicon preview.
+ */
+
+/* Base styles - Reset and global settings */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -22,7 +28,7 @@ body {
   padding: 20px;
 }
 
-/* Timer card styling */
+/* Timer card styling - The main container for the timer */
 .timer-card {
   background-color: white;
   border-radius: 12px;
@@ -41,11 +47,11 @@ body {
   font-size: 60px;
   font-weight: bold;
   margin: 30px 0;
-  color: #e53935;
+  color: #e53935; /* Red color for the timer to match active state */
   font-family: 'Courier New', monospace;
 }
 
-/* Button styling */
+/* Button styling - Controls for the timer */
 .controls {
   display: flex;
   justify-content: center;
@@ -65,7 +71,7 @@ body {
 }
 
 .btn-start {
-  background-color: #4caf50;
+  background-color: #4caf50; /* Green for start */
 }
 
 .btn-start:hover {
@@ -73,7 +79,7 @@ body {
 }
 
 .btn-pause {
-  background-color: #ff9800;
+  background-color: #ff9800; /* Orange for pause */
 }
 
 .btn-pause:hover {
@@ -81,19 +87,79 @@ body {
 }
 
 .btn-reset {
-  background-color: #9e9e9e;
+  background-color: #9e9e9e; /* Gray for reset */
 }
 
 .btn-reset:hover {
   background-color: #757575;
 }
 
-/* Favicon preview styling */
+/* Favicon preview styling - Visual representation of the current favicon */
 .favicon-preview {
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #eee;
   text-align: center;
+}
+
+/* Favicon icon - Mirrors the browser tab favicon appearance */
+.favicon-icon {
+  width: 48px;
+  height: 48px;
+  margin: 20px auto 0;
+  position: relative;
+  background: transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+/* Active state colors - used when timer is running */
+.favicon-icon.active {
+  border: 9px solid rgba(176, 0, 0, 0.8); /* Dark red border */
+}
+
+/* Paused state colors - used when timer is paused */
+.favicon-icon.paused {
+  border: 9px solid rgba(0, 0, 176, 0.8); /* Dark blue border */
+}
+
+/* Progress overlay - shows the current timer progress */
+.progress-overlay {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.progress-overlay.active {
+  border: 9px solid rgba(255, 0, 0, 0.8); /* Brighter red for progress */
+}
+
+.progress-overlay.paused {
+  border: 9px solid rgba(0, 0, 255, 0.8); /* Brighter blue for progress */
+}
+
+/* Favicon label - Shows current state text */
+.favicon-label {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .timer-display {
+    font-size: 48px;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
 }
 
 /* Responsive adjustments */
