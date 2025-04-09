@@ -12,7 +12,7 @@
  * - Visual preview of the favicon state in the UI
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 const App = () => {
@@ -20,6 +20,11 @@ const App = () => {
   const [isActive, setIsActive] = useState(false); // Controls if timer is running
   const [timeRemaining, setTimeRemaining] = useState(25 * 60); // 25 minutes in seconds
   const totalTime = 25 * 60; // 25 minutes in seconds (constant)
+  
+  // Refs for tracking time and animation
+  const timerEndRef = useRef(null);
+  const rafIdRef = useRef(null);
+  const intervalIdRef = useRef(null);
   
   // Calculate progress (0 to 1) - decreases as time passes
   const progress = 1 - (timeRemaining / totalTime);
@@ -167,40 +172,117 @@ const App = () => {
   /**
    * Effect: Handle timer countdown logic
    * 
-   * This effect manages the actual timer countdown using setInterval:
-   * - Decreases timeRemaining every second when active
+   * This effect manages the actual timer countdown using a combination of
+   * requestAnimationFrame (for smooth UI) and setInterval (for background reliability):
+   * - Uses absolute timestamps to calculate remaining time accurately
+   * - Continues running even when the tab is not in focus
    * - Automatically stops the timer when it reaches zero
-   * - Cleans up interval when component unmounts or dependencies change
    */
   useEffect(() => {
-    let interval = null;
-    
-    if (isActive && timeRemaining > 0) {
-      // Set up interval to decrement time every second
-      interval = setInterval(() => {
-        setTimeRemaining(prev => prev - 1);
-      }, 1000);
-    } else if (timeRemaining === 0) {
-      // Auto-stop timer when it reaches zero
-      setIsActive(false);
+    // Cleanup previous timers
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
     }
     
-    // Clean up interval on unmount or dependency change
-    return () => clearInterval(interval);
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
+    
+    // Only start timer if active and time remaining
+    if (isActive && timeRemaining > 0) {
+      // Initialize end time if not set
+      if (!timerEndRef.current) {
+        timerEndRef.current = Date.now() + (timeRemaining * 1000);
+      }
+      
+      // Update function for both RAF and interval
+      const updateTimer = () => {
+        const now = Date.now();
+        const remaining = Math.max(0, timerEndRef.current - now);
+        const newRemainingSeconds = Math.ceil(remaining / 1000);
+        
+        // Only update if the second has changed
+        if (newRemainingSeconds !== timeRemaining) {
+          setTimeRemaining(newRemainingSeconds);
+        }
+        
+        // Check if timer completed
+        if (newRemainingSeconds <= 0) {
+          setIsActive(false);
+          timerEndRef.current = null;
+          
+          // Clear timers
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+          
+          if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+            intervalIdRef.current = null;
+          }
+        }
+      };
+      
+      // Function for requestAnimationFrame loop
+      const rafLoop = () => {
+        updateTimer();
+        if (isActive && timeRemaining > 0) {
+          rafIdRef.current = requestAnimationFrame(rafLoop);
+        }
+      };
+      
+      // Start RAF loop for smooth UI updates
+      rafIdRef.current = requestAnimationFrame(rafLoop);
+      
+      // Also use interval as backup for background operation
+      intervalIdRef.current = setInterval(updateTimer, 1000);
+      
+      // Set up visibility change handler
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          updateTimer(); // Immediately update when becoming visible
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      // Clean up
+      return () => {
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+        
+        if (intervalIdRef.current) {
+          clearInterval(intervalIdRef.current);
+          intervalIdRef.current = null;
+        }
+        
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
+    }
+    
+    return undefined;
   }, [isActive, timeRemaining]);
   
   // Timer control functions
   const startTimer = () => {
+    // Calculate the end time based on current time plus remaining time
+    timerEndRef.current = Date.now() + (timeRemaining * 1000);
     setIsActive(true);
   };
   
   const pauseTimer = () => {
+    // When pausing, store remaining time but clear end time
     setIsActive(false);
   };
   
   const resetTimer = () => {
+    // Reset all state and refs
     setIsActive(false);
     setTimeRemaining(25 * 60);
+    timerEndRef.current = null;
   };
   
   /**
