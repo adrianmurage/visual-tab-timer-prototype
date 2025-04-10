@@ -17,12 +17,15 @@ A prototype pomodoro timer application with visual feedback through both UI and 
 ## Getting Started
 
 1. Clone the repository
+    ```bash 
+    git clone git@github.com:adrianmurage/visual-tab-timer-prototype.git
+    ```
 2. Install dependencies:
-   ```
+   ```bash
    yarn
    ```
 3. Start the development server:
-   ```
+   ```bash
    yarn dev
    ```
 
