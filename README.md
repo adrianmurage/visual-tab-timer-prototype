@@ -1,4 +1,4 @@
-# TypeScript Pomodoro Timer Application
+# Visual Tab Timer Prototype
 
 A prototype pomodoro timer application with visual feedback through both UI and browser favicon.
 
