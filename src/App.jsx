@@ -78,7 +78,7 @@ const App = () => {
     // Calculate dimensions using relative proportions for different sizes
     const centerX = size / 2;
     const centerY = size / 2;
-    const radius = Math.floor(size * 0.34); // Smaller than canvas for better visibility
+    const radius = Math.floor(size * 0.42); // Smaller than canvas for better visibility
     const lineWidth = Math.floor(size * 0.19); // Thick line for better visibility at small sizes
     
     // Set line width for the donut shape
@@ -88,7 +88,7 @@ const App = () => {
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     // Use a light red color for background when active, light blue when paused
-    ctx.strokeStyle = isRunning ? 'rgba(255, 0, 0, 0.3)' : 'rgba(0, 0, 255, 0.3)';
+    ctx.strokeStyle = isRunning ? 'rgba(255, 0, 0, 0.3)' : 'rgba(236, 165, 98, 0.5)';
     ctx.stroke();
     
     // Draw progress arc - only if there is progress to show
@@ -97,7 +97,7 @@ const App = () => {
       // Start from top (-Math.PI/2) and draw clockwise
       ctx.arc(centerX, centerY, radius, -Math.PI/2, (-Math.PI/2) + (progress * 2 * Math.PI));
       // Use dark red when active, dark blue when paused for better contrast
-      ctx.strokeStyle = isRunning ? '#b00000' : '#0000b0';
+      ctx.strokeStyle = isRunning ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 123, 0)';
       ctx.stroke();
     }
     

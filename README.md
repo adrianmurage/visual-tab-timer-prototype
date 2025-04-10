@@ -1,12 +1,38 @@
-# React + Vite
+# TypeScript Pomodoro Timer Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A prototype pomodoro timer application with visual feedback through both UI and browser favicon.
 
-Currently, two official plugins are available:
+## Features
+  
+- **Visual Feedback**
+  - Dynamic favicon that updates with timer progress
+  - Browser tab title updates with current timer status
+  - Color-coded UI based on current timer type
+  
+- **Background Operation**
+  - Timer continues running when tab is not in focus
+  - Accurate timing using absolute timestamps
+  - Visual updates when returning to the tab
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting Started
 
-## Expanding the ESLint configuration
+1. Clone the repository
+2. Install dependencies:
+   ```
+   yarn
+   ```
+3. Start the development server:
+   ```
+   yarn dev
+   ```
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## How It Works
+
+### Core Timer Logic
+
+The timer uses a combination of `requestAnimationFrame` and timestamps to ensure accurate timing, even when the browser tab is not in focus.
+
+### Visual Effects
+
+1. **Favicon Updates**: Creates a donut-shaped icon that shows timer progress
+2. **Document Title**: Updates the browser tab title with timer status

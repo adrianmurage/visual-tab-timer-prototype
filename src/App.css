@@ -115,12 +115,14 @@ body {
 
 /* Active state colors - used when timer is running */
 .favicon-icon.active {
-  border: 9px solid rgba(176, 0, 0, 0.8); /* Dark red border */
+  /* transparent light red */
+  border: 9px solid rgba(255, 0, 0, 0.5);
 }
 
 /* Paused state colors - used when timer is paused */
 .favicon-icon.paused {
-  border: 9px solid rgba(0, 0, 176, 0.8); /* Dark blue border */
+  /* light orange */
+  border: 9px solid rgba(236, 165, 98, 0.3);
 }
 
 /* Progress overlay - shows the current timer progress */
@@ -140,7 +142,8 @@ body {
 }
 
 .progress-overlay.paused {
-  border: 9px solid rgba(0, 0, 255, 0.8); /* Brighter blue for progress */
+  /* dark orange or a color that contrasts well with the light orange */
+  border: 9px solid rgb(255, 123, 0);
 }
 
 /* Favicon label - Shows current state text */
