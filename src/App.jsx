@@ -51,6 +51,27 @@ const App = () => {
     
     // Update title with current time when timer is active
     document.title = `${formatTime(timeRemaining)} - Pomodoro`;
+    
+    // If timer is active, set up a dedicated interval for title updates
+    if (isActive) {
+      const titleUpdateInterval = setInterval(() => {
+        // Calculate remaining time directly from the end time reference
+        if (timerEndRef.current) {
+          const now = Date.now();
+          const remaining = Math.max(0, timerEndRef.current - now);
+          const seconds = Math.floor(remaining / 1000);
+          document.title = `${formatTime(seconds)} - Pomodoro`;
+          
+          // Also update the state if it's different
+          // This helps keep the UI in sync with the title
+          if (seconds !== timeRemaining) {
+            setTimeRemaining(seconds);
+          }
+        }
+      }, 250); // Update 4 times per second to compensate for throttling
+      
+      return () => clearInterval(titleUpdateInterval);
+    }
   }, [isActive, timeRemaining]);
 
   /**
@@ -201,7 +222,7 @@ const App = () => {
       const updateTimer = () => {
         const now = Date.now();
         const remaining = Math.max(0, timerEndRef.current - now);
-        const newRemainingSeconds = Math.ceil(remaining / 1000);
+        const newRemainingSeconds = Math.floor(remaining / 1000);
         
         // Only update if the second has changed
         if (newRemainingSeconds !== timeRemaining) {
